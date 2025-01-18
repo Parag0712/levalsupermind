@@ -1,0 +1,116 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  fullname    String
+  clerkId     String          @unique
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  stripeId    String?
+  blogs       Blog[]
+  transcripts Transcription[]
+  role        UserRole        @default(AUTHOR)
+}
+
+model Transcription {
+  id        String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  content   String           @db.Text
+  accuracy  Float?
+  user      User             @relation(fields: [userId], references: [id])
+  userId    String           @db.Uuid
+  blog      Blog?
+  status    ProcessingStatus @default(PENDING)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+}
+
+model Blog {
+  id              String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title           String
+  content         String         @db.Text
+  slug            String
+  metaDescription String?        @db.Text
+  keywords        String[]
+  status          BlogStatus     @default(DRAFT)
+  author          User           @relation(fields: [authorId], references: [id])
+  authorId        String         @db.Uuid
+  transcription   Transcription? @relation(fields: [transcriptionId], references: [id])
+  transcriptionId String?        @unique @db.Uuid
+  translations    Translation[]
+  categories      Category[]
+  views           Int            @default(0)
+  publishedAt     DateTime?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([slug])
+}
+
+model Translation {
+  id              String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  language        Language
+  content         String     @db.Text
+  title           String
+  slug            String
+  metaDescription String?    @db.Text
+  metaKeywords    String[]
+  status          BlogStatus @default(DRAFT)
+  blog            Blog       @relation(fields: [blogId], references: [id], onDelete: Cascade)
+  blogId          String     @db.Uuid
+  publishedAt     DateTime?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  @@unique([blogId, language])
+  @@index([slug])
+}
+
+model Category {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name      String   @unique
+  slug      String   @unique
+  blogs     Blog[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum UserRole {
+  ADMIN
+  AUTHOR
+  EDITOR
+}
+
+enum ProcessingStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum BlogStatus {
+  DRAFT
+  REVIEW
+  PUBLISHED
+  ARCHIVED
+}
+
+enum Language {
+  ENGLISH
+  HINDI
+  MARATHI
+  GUJARATI
+  TAMIL
+  KANNADA
+  TELUGU
+  BENGALI
+  MALAYALAM
+  PUNJABI
+  ODIA
+}

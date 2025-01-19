@@ -1,4 +1,3 @@
-import { Language } from "@prisma/client";
 import { client } from "../../lib/prisma";
 
 export async function getBlog(id: string) {
@@ -20,6 +19,9 @@ export async function getBlogBySlug(slug: string) {
     const blog = await client.blog.findFirst({
       where: {
         slug: slug,
+      },
+      include: {
+        translations: true,
       },
     });
     return blog;
@@ -61,7 +63,7 @@ export async function getBlogWithTranslations(id: string) {
 }
 
 
-export async function getBlogWithLanguageFilter(slug: string, language: Language) {
+export async function getBlogWithLanguageFilter(slug: string, language: string) {
   try {
     const blog = await client.blog.findFirst({
       where: { slug: slug },

@@ -12,7 +12,7 @@ export const Header = () => {
           Streamline your workflow and boost your productivity
         </p>
         <div className="inline-flex gap-1 items-center hover:underline">
-          <Link href="/dashboard">Get started for free</Link>
+          <Link href="/transcription">Get started for free</Link>
           <ArrowRight className="h-4 w-4 inline-flex justify-center items-center" />
         </div>
       </div>
@@ -28,7 +28,7 @@ export const Header = () => {
               <a href="#">Help</a>
             </nav>
             <Link
-              href="/conversations"
+              href="/transcription"
               className="bg-black text-white px-4 py-2 rounded-lg font-medium inline-flex align-items justify-center tracking-tight"
             >
               <LetterSwapPingPong label="Get for free" staggerFrom={"last"} />

@@ -37,7 +37,7 @@ export default function Home() {
     formData.append("file", file);
 
     try {
-      const response = await axios.post("/api/transcribe", formData, {
+      const response = await axios.post("/api/v1/video", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },

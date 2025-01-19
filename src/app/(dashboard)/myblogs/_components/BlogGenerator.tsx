@@ -3,88 +3,53 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import DraftList from "./DrafList";
-import FileUpload from "./FileUpload";
-
-type Draft = {
-  id: string;
-  content: string;
-};
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export default function BlogGenerator() {
   const [prompt, setPrompt] = useState("");
-  const [drafts, setDrafts] = useState<Draft[]>([]);
+  const [file, setFile] = useState<File | null>(null);
+  const [generatedBlog, setGeneratedBlog] = useState<string | null>(null);
 
-  const handleGenerate = () => {
-    // In a real application, you would send the prompt to an API
-    // and receive generated content. For this example, we'll just
-    // use the prompt as the content.
-    const newDraft: Draft = {
-      id: Date.now().toString(),
-      content: prompt,
-    };
-    setDrafts([...drafts, newDraft]);
-    setPrompt("");
-  };
-
-  const handleDelete = (id: string) => {
-    setDrafts(drafts.filter((draft) => draft.id !== id));
-  };
-
-  const handleEdit = (id: string, newContent: string) => {
-    setDrafts(
-      drafts.map((draft) =>
-        draft.id === id ? { ...draft, content: newContent } : draft
-      )
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    // Implement your blog generation logic here
+    // For now, we'll just set a dummy response
+    setGeneratedBlog(
+      "This is a generated blog post based on your prompt or file."
     );
   };
 
-  const handlePublish = (id: string) => {
-    // In a real application, you would send the draft to an API
-    // to be published. For this example, we'll just log it.
-    const draft = drafts.find((d) => d.id === id);
-    if (draft) {
-      console.log("Publishing draft:", draft);
-      // Here you would typically redirect to the published post
-      // window.location.href = `/username/${draft.id}`
-    }
-  };
-
   return (
-    <div className="space-y-8">
-      <Card>
-        <CardContent className="pt-6">
-          <Tabs defaultValue="text">
-            <TabsList className="mb-4">
-              <TabsTrigger value="text">Text</TabsTrigger>
-              <TabsTrigger value="file">File Upload</TabsTrigger>
-            </TabsList>
-            <TabsContent value="text">
-              <Textarea
-                placeholder="Enter your prompt here..."
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                className="mb-4"
-              />
-            </TabsContent>
-            <TabsContent value="file">
-              <FileUpload
-                onUpload={(file) => console.log("File uploaded:", file)}
-              />
-            </TabsContent>
-          </Tabs>
-          <Button onClick={handleGenerate}>Generate</Button>
-        </CardContent>
-      </Card>
-
-      <DraftList
-        drafts={drafts}
-        onDelete={handleDelete}
-        onEdit={handleEdit}
-        onPublish={handlePublish}
-      />
-    </div>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <Label htmlFor="prompt">Prompt</Label>
+        <Textarea
+          id="prompt"
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
+          placeholder="Enter your blog prompt here..."
+          className="mt-1"
+        />
+      </div>
+      <div>
+        <Label htmlFor="file">Upload File (optional)</Label>
+        <Input
+          id="file"
+          type="file"
+          onChange={(e) => setFile(e.target.files?.[0] || null)}
+          className="mt-1"
+        />
+      </div>
+      <Button type="submit" className="w-full">
+        Generate Blog
+      </Button>
+      {generatedBlog && (
+        <div className="mt-4 p-4 bg-secondary rounded-md">
+          <h3 className="text-lg font-semibold mb-2">Generated Blog:</h3>
+          <p>{generatedBlog}</p>
+        </div>
+      )}
+    </form>
   );
 }

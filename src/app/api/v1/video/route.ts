@@ -332,7 +332,7 @@ export async function POST(request: NextRequest) {
                 id:user.id
               }
             },
-            keywords:keyword,
+            keywords:[...keyword],
             transcription:transcript,
             status:"PUBLISHED",
         }

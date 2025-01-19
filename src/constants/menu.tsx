@@ -15,36 +15,36 @@ type SIDE_BAR_MENU_PROPS = {
 };
 
 export const SIDE_BAR_MENU: SIDE_BAR_MENU_PROPS[] = [
-  {
-    label: "Dashboard",
-    icon: <DashboardIcon />,
-    path: "dashboard",
-  },
+  // {
+  //   label: "Dashboard",
+  //   icon: <DashboardIcon />,
+  //   path: "dashboard",
+  // },
   {
     label: "Conversations",
     icon: <ChatIcon />,
-    path: "conversation",
+    path: "conversations",
   },
-  {
-    label: "Integrations",
-    icon: <IntegrationsIcon />,
-    path: "integration",
-  },
-  {
-    label: "Settings",
-    icon: <SettingsIcon />,
-    path: "settings",
-  },
+  // {
+  //   label: "Integrations",
+  //   icon: <IntegrationsIcon />,
+  //   path: "integration",
+  // },
+  // {
+  //   label: "Settings",
+  //   icon: <SettingsIcon />,
+  //   path: "settings",
+  // },
   {
     label: "Appointments",
     icon: <CalIcon />,
     path: "appointment",
   },
-  {
-    label: "Email Marketing",
-    icon: <EmailIcon />,
-    path: "email-marketing",
-  },
+  // {
+  //   label: "Email Marketing",
+  //   icon: <EmailIcon />,
+  //   path: "email-marketing",
+  // },
 ];
 
 type TABS_MENU_PROPS = {

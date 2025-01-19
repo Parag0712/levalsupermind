@@ -30,7 +30,7 @@ export const Hero = () => {
               successes.
             </p>
             <div className="flex gap-1 items-center mt-[30px]">
-              <Link href="/dashboard" className="btn btn-primary">
+              <Link href="/conversations" className="btn btn-primary">
                 <LetterSwapPingPong label="Get for free" staggerFrom={"last"} />
               </Link>
               <button className="btn btn-text gap-1 hover:text-white">

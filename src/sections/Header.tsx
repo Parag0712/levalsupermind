@@ -28,7 +28,7 @@ export const Header = () => {
               <a href="#">Help</a>
             </nav>
             <Link
-              href="/dashboard"
+              href="/conversations"
               className="bg-black text-white px-4 py-2 rounded-lg font-medium inline-flex align-items justify-center tracking-tight"
             >
               <LetterSwapPingPong label="Get for free" staggerFrom={"last"} />

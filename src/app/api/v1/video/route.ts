@@ -305,8 +305,7 @@ export async function POST(request: NextRequest) {
       const flowOutputs = response.data.outputs[0];
       const firstComponentOutputs = flowOutputs.outputs[0];
       const output = firstComponentOutputs.outputs.message;
-
-      // Extract the JSON string (removing the starting "```json" and ending "```")
+        // Extract the JSON string (removing the starting "```json" and ending "```")
       const jsonString = output.text.replace(/^```json\n|\n```$/g, "");
 
       // Parse the JSON string

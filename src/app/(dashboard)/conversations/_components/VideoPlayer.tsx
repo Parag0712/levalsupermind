@@ -14,8 +14,10 @@ export default function VideoPlayer({ src }: VideoPlayerProps) {
   }, [src]);
 
   return (
-    <video ref={videoRef} controls className="w-full">
-      Your browser does not support the video tag.
-    </video>
+    <div className="relative aspect-video w-full overflow-hidden rounded-lg shadow-lg">
+      <video ref={videoRef} controls className="w-full h-full object-cover">
+        Your browser does not support the video tag.
+      </video>
+    </div>
   );
 }

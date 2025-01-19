@@ -23,7 +23,7 @@ export const SIDE_BAR_MENU: SIDE_BAR_MENU_PROPS[] = [
   {
     label: "Conversations",
     icon: <ChatIcon />,
-    path: "conversations",
+    path: "transcription",
   },
   // {
   //   label: "Integrations",

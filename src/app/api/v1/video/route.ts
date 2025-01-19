@@ -320,36 +320,34 @@ export async function POST(request: NextRequest) {
         metaTag,
       } = parsedData;
 
-
-      const blog = await client.blog.create({
-        data:{
-            title,
-            content:transcript,
-            metaDescription,
-            slug:title,
-            author:{
-              connect:{
-                id:user.id
-              }
-            },
-            keywords:[...keyword],
-            transcription:transcript,
-            status:"PUBLISHED",
-        }
-      })
+      // const blog = await client.blog.create({
+      //   data: {
+      //     title,
+      //     content: description,
+      //     metaDescription,
+      //     slug: title,
+      //     author: {
+      //       connect: {
+      //         id: user.id,
+      //       },
+      //     },
+      //     keywords:["blogs"],
+      //     status: "PUBLISHED",
+      //   },
+      // });
 
       // Then convert keywords to array
-      const keywordsArray = keyword.split(",").map((k: string) => k.trim());
+      // const keywordsArray = keyword.split(",").map((k: string) => k.trim());
 
       // Return the structured data if needed
       return NextResponse.json({
-        blog:blog,
+        // blog: blog,
         title,
         description,
-        keywordsArray,
+        // keywordsArray,
         metaDescription,
         metaTitle,
-        metaTag,  
+        metaTag,
         transcript,
       });
     }

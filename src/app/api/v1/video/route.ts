@@ -74,7 +74,14 @@ const validateFile = (file: File) => {
     );
   }
 };
-
+export function generateSlug(title: string): string {
+  return title
+    .toLowerCase() // Convert to lowercase
+    .replace(/[^\w\s-]/g, '') // Remove non-alphanumeric characters
+    .trim() // Trim spaces at both ends
+    .replace(/\s+/g, '-') // Replace spaces with hyphens
+    .replace(/-+/g, '-'); // Replace multiple hyphens with a single one
+}
 // Improved S3 upload with progress tracking
 async function uploadToS3(file: File, fileName: string, bucketName: string) {
   const buffer = Buffer.from(await file.arrayBuffer());
@@ -327,7 +334,7 @@ export async function POST(request: NextRequest) {
           title,
           content: description,
           metaDescription,
-          slug: title,
+          slug: generateSlug(title),
           keywords:keywordsArray,
           status: "PUBLISHED",
           author: {
@@ -341,7 +348,7 @@ export async function POST(request: NextRequest) {
       // Return the structured data if needed
       return NextResponse.json({
         // blog: blog,
-        blogId:blog.slug,
+        blogId:blog.id,
         title,
         description,
         // keywordsArray,

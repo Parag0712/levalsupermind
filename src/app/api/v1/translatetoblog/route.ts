@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { TranslateClient, TranslateTextCommand } from "@aws-sdk/client-translate"; // AWS Translate client
-import { client} from "@/lib/prisma"; // Import Prisma client and Prisma's enum
-import { $Enums } from "@prisma/client";
+import {
+  TranslateClient,
+  TranslateTextCommand,
+} from "@aws-sdk/client-translate";
+import { client } from "@/lib/prisma";
+import { generateSlug } from "../video/route";
 
-// Set up AWS Translate client
 const translateClient = new TranslateClient({
   region: process.env.AWS_REGION,
   credentials: {
@@ -12,57 +14,106 @@ const translateClient = new TranslateClient({
   },
 });
 
-const languages: $Enums.Language[] = [
-  $Enums.Language.ES,
-  $Enums.Language.FR,
-  $Enums.Language.DE,
-  $Enums.Language.IT,
-  $Enums.Language.JA,
-  $Enums.Language.KO,
-  $Enums.Language.PT,
-  $Enums.Language.RU,
-  $Enums.Language.ZH,
+// AWS language code mapping for Indian languages
+const languageToAWSCode = {
+  EN: "en",
+  HI: "hi",
+  MR: "mr",
+  GU: "gu",
+  TA: "ta",
+  KN: "kn",
+  TE: "te",
+  BN: "bn",
+  ML: "ml",
+  PA: "pa",
+} as const;
+
+// Define type for supported languages
+type SupportedLanguage = keyof typeof languageToAWSCode;
+
+const languages: SupportedLanguage[] = [
+  "HI",
+  "MR",
+  "GU",
+  "TA",
+  "KN",
+  "TE",
+  "BN",
+  "ML",
+  "PA",
 ];
 
 export async function POST(request: NextRequest) {
   try {
-    const { blogId } = await request.json(); // Get the blog ID from the request body
-    
-    if(!blogId){
-      return NextResponse.json({error:"Blog ID is required"},{status:400})
+    const { blogId } = await request.json();
+    console.log("Blog ID:", blogId);
+    if (!blogId) {
+      return NextResponse.json(
+        { error: "Blog ID is required" },
+        { status: 400 }
+      );
     }
-    
-    // Fetch the blog by ID from Prisma
+
     const blog = await client.blog.findUnique({
       where: { id: blogId },
     });
 
     if (!blog) {
-      return NextResponse.json(
-        { error: "Blog not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Blog not found" }, { status: 404 });
     }
 
-    // Start translation process for all languages
     const translationPromises = languages.map(async (language) => {
       const translatedContent = await translateText(blog.content, language);
+      const translatedSlug = await translateText(blog.slug, language);
       const translatedTitle = await translateText(blog.title, language);
       const translatedMetaDescription = blog.metaDescription
         ? await translateText(blog.metaDescription, language)
         : null;
 
-      // Store the translation in the database using the enum value
-      await client.translation.create({
-        data: {
-          blogId: blog.id,
-          language: language, // Directly using Prisma's Language enum value
-          title: translatedTitle!,
-          content: translatedContent!,
-          metaDescription: translatedMetaDescription!,
-          slug: translatedTitle!,
+      console.log("Translated Content:", translatedContent);
+      console.log("Translated Title:", translatedTitle);
+      console.log("Translated Meta Description:", translatedMetaDescription);
+
+      // Check if translation already exists
+      const existingTranslation = await client.translation.findUnique({
+        where: {
+          blogId_language: {
+            blogId: blog.id,
+            language: language,
+          },
         },
       });
+
+      if (existingTranslation) {
+        // Update existing translation
+        await client.translation.update({
+          where: {
+            blogId_language: {
+              blogId: blog.id,
+              language: language,
+            },
+          },
+          data: {
+            title: translatedTitle!,
+            content: translatedContent!,
+            metaDescription: translatedMetaDescription || "",
+            slug: generateSlug(translatedSlug!),
+            keywords:blog.keywords,
+          },
+        });
+      } else {
+        // Create new translation
+        await client.translation.create({
+          data: {
+            blogId: blog.id,
+            language: language,
+            title: translatedTitle!,
+            content: translatedContent!,
+            metaDescription: translatedMetaDescription || "",
+            slug: translatedSlug!,
+          },
+        });
+      }
 
       return {
         language,
@@ -72,10 +123,8 @@ export async function POST(request: NextRequest) {
       };
     });
 
-    // Wait for all translations to finish
     const translations = await Promise.all(translationPromises);
 
-    // Return a detailed response with the translations
     return NextResponse.json({
       message: "Blog content translated and stored successfully",
       translations,
@@ -89,11 +138,11 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function translateText(text: string, targetLanguage: $Enums.Language) {
+async function translateText(text: string, targetLanguage: SupportedLanguage) {
   const params = {
     Text: text,
-    SourceLanguageCode: $Enums.Language.EN,
-    TargetLanguageCode: targetLanguage,
+    SourceLanguageCode: "en",
+    TargetLanguageCode: languageToAWSCode[targetLanguage].toLowerCase(),
   };
 
   try {

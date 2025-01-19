@@ -55,7 +55,7 @@ model Blog {
 
 model Translation {
   id              String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  language        Language
+  language        String
   content         String     @db.Text
   title           String
   slug            String
@@ -99,16 +99,4 @@ enum BlogStatus {
   REVIEW
   PUBLISHED
   ARCHIVED
-}
-enum Language {
-  EN
-  ES
-  FR
-  DE
-  IT
-  JA
-  KO
-  PT
-  RU
-  ZH
 }

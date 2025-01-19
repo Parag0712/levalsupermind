@@ -212,10 +212,10 @@ async function pollTranscriptionStatus(
 // Modified POST handler
 export async function POST(request: NextRequest) {
   try {
-    const user = await currentUser();
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 401 });
-    }
+    // const user = await currentUser();
+    // if (!user) {
+    //   return NextResponse.json({ error: "User not found" }, { status: 401 });
+    // }
 
     const formData = await request.formData();
     const file = formData.get("file") as File;
@@ -234,9 +234,7 @@ export async function POST(request: NextRequest) {
 
     const fileUrl = await uploadToS3(file, fileName, bucketName);
     const { jobName } = await handleTranscriptionJob(fileUrl, fileName);
-    const { content } = await pollTranscriptionStatus(
-      jobName
-    );
+    const { content } = await pollTranscriptionStatus(jobName);
 
     const transcript = content.results.transcripts[0].transcript;
 
@@ -305,14 +303,16 @@ export async function POST(request: NextRequest) {
       const flowOutputs = response.data.outputs[0];
       const firstComponentOutputs = flowOutputs.outputs[0];
       const output = firstComponentOutputs.outputs.message;
+      console.log(output);
 
-      // Extract the JSON string (removing the starting "```json" and ending "```")
-      const jsonString = output.text.replace(/^```json\n|\n```$/g, "");
+      const jsonString = output.message.text
+        .replace(/```json\s*|\s*```/g, "")
+        .trim();
 
       // Parse the JSON string
       const parsedData = JSON.parse(jsonString);
 
-      // Destructure the necessary fields
+      // First destructure the data
       const {
         title,
         description,
@@ -322,30 +322,17 @@ export async function POST(request: NextRequest) {
         metaTag,
       } = parsedData;
 
-      const blog = await client.blog.create({
-        data: {
-          title,
-          content: description,
-          keywords: keyword || "",
-          metaDescription: metaDescription || "",
-          slug: title,
-          author: {
-            connect: {
-              id: user.id,
-            },
-          },
-        },
-      });
+      // Then convert keywords to array
+      const keywordsArray = keyword.split(",").map((k: string) => k.trim());
 
       // Return the structured data if needed
       return NextResponse.json({
         title,
         description,
-        keyword,
+        keywordsArray,
         metaDescription,
         metaTitle,
-        metaTag,
-        blog,
+        metaTag,  
         transcript,
       });
     }

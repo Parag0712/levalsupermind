@@ -212,10 +212,10 @@ async function pollTranscriptionStatus(
 // Modified POST handler
 export async function POST(request: NextRequest) {
   try {
-    // const user = await currentUser();
-    // if (!user) {
-    //   return NextResponse.json({ error: "User not found" }, { status: 401 });
-    // }
+    const user = await currentUser();
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 401 });
+    }
 
     const formData = await request.formData();
     const file = formData.get("file") as File;
@@ -295,8 +295,6 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    console.log(response.data);
-
     // Example usage:
 
     if (response && response.data.outputs) {
@@ -322,11 +320,30 @@ export async function POST(request: NextRequest) {
         metaTag,
       } = parsedData;
 
+
+      const blog = await client.blog.create({
+        data:{
+            title,
+            content:transcript,
+            metaDescription,
+            slug:title,
+            author:{
+              connect:{
+                id:user.id
+              }
+            },
+            keywords:keyword,
+            transcription:transcript,
+            status:"PUBLISHED",
+        }
+      })
+
       // Then convert keywords to array
       const keywordsArray = keyword.split(",").map((k: string) => k.trim());
 
       // Return the structured data if needed
       return NextResponse.json({
+        blog:blog,
         title,
         description,
         keywordsArray,

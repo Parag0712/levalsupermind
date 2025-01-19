@@ -34,7 +34,7 @@ export default function Home() {
 
       {/* Button to fetch blog */}
       <button
-        onClick={fetchBlog}g
+        onClick={fetchBlog}
         className="mb-4 p-2 bg-blue-500 text-white rounded"
       >
         Fetch Blog

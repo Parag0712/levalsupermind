@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import { client } from "@/lib/prisma";
 import {
   TranslateClient,
   TranslateTextCommand,
 } from "@aws-sdk/client-translate";
-import { client } from "@/lib/prisma";
+import { NextRequest, NextResponse } from "next/server";
 import { generateSlug } from "../video/route";
 
 const translateClient = new TranslateClient({
@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
             title: translatedTitle!,
             content: translatedContent!,
             metaDescription: translatedMetaDescription || "",
-            slug: translatedSlug!,
+            slug:generateSlug(translatedSlug!),
           },
         });
       }

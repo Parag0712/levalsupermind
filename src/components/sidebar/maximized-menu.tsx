@@ -1,25 +1,15 @@
+import Logo from "@/assets/logosaas.png";
 import { SIDE_BAR_MENU } from "@/constants/menu";
 import { LogOut, Menu, MonitorSmartphone } from "lucide-react";
 import Image from "next/image";
-import React from "react";
-import DomainMenu from "./domain-menu";
 import MenuItem from "./menu-item";
-import Logo from "@/assets/logosaas.png";
 type Props = {
   onExpand(): void;
   current: string;
   onSignOut(): void;
-  domains:
-    | {
-        id: string;
-        name: string;
-        icon: string | null;
-      }[]
-    | null
-    | undefined;
 };
 
-const MaxMenu = ({ current, domains, onExpand, onSignOut }: Props) => {
+const MaxMenu = ({ current,  onExpand, onSignOut }: Props) => {
   return (
     <div className="py-3 px-4 flex flex-col h-full">
       <div className="flex justify-between items-center">
@@ -35,7 +25,7 @@ const MaxMenu = ({ current, domains, onExpand, onSignOut }: Props) => {
           {SIDE_BAR_MENU.map((menu, key) => (
             <MenuItem size="max" {...menu} key={key} current={current} />
           ))}
-          <DomainMenu domains={domains} />
+          {/* <DomainMenu domains={domains} /> */}
         </div>
         <div className="flex flex-col">
           <p className="text-xs text-gray-500 mb-3">OPTIONS</p>

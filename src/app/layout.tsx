@@ -18,13 +18,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider>
-      <html lang="en" className="relative">
+    <html lang="en" className="relative">
+        <ClerkProvider >
         <body className={twMerge(dmSans.className, "antialiased bg-[#EAEEFE]")}>
           {children}
           <Toaster />
         </body>
-      </html>
     </ClerkProvider>
+      </html>
   );
 }

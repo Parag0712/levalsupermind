@@ -5,18 +5,8 @@ import React from "react";
 import MaxMenu from "./maximized-menu";
 import { MinMenu } from "./minimized-menu";
 
-type Props = {
-  domains:
-    | {
-        id: string;
-        name: string;
-        icon: string;
-      }[]
-    | null
-    | undefined;
-};
 
-const SideBar = ({ domains }: Props) => {
+const SideBar = () => {
   const { expand, onExpand, page, onSignOut } = useSideBar();
 
   return (
@@ -31,14 +21,12 @@ const SideBar = ({ domains }: Props) => {
     >
       {expand ? (
         <MaxMenu
-          domains={domains}
           current={page!}
           onExpand={onExpand}
           onSignOut={onSignOut}
         />
       ) : (
         <MinMenu
-          domains={domains}
           onShrink={onExpand}
           current={page!}
           onSignOut={onSignOut}

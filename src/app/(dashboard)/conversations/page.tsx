@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,28 +9,44 @@ import VideoPlayer from "./_components/VideoPlayer";
 
 export default function Home() {
   const [videoSrc, setVideoSrc] = useState<string | null>(null);
-  const [transcript, setTranscript] = useState<string>("");
+  const [transcript, setTranscript] = useState<string>(""); 
   const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       const url = URL.createObjectURL(file);
-      setVideoSrc(url);
-      generateTranscript(file);
+      setVideoSrc(url); // Set video source for playback
+      await generateTranscript(file); // Call API to get the transcript
     }
   };
 
   const generateTranscript = async (file: File) => {
     setIsLoading(true);
-    // Simulating transcript generation
-    // In a real application, you would send the file to a speech-to-text API
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    setTranscript(
-      "This is a simulated transcript of the uploaded video. In a real application, you would integrate with a speech-to-text API to generate an actual transcript of the video content."
-    );
-    setIsLoading(false);
+
+    // Prepare form data
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      // Send video file to the API
+      const response = await axios.post(
+        "/api/v1/video", 
+        formData,
+      );
+      
+      // Assuming the API response contains the transcript
+      const { transcript } = response.data;
+      
+      // Set the transcript in the state
+      setTranscript(transcript);
+    } catch (error) {
+      console.error("Error uploading video:", error);
+      setTranscript("Failed to generate transcript.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

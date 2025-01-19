@@ -1,4 +1,4 @@
-import LangflowClient from "@/lib/LangflowClient";
+import { client } from "@/lib/prisma";
 import {
   GetObjectCommand,
   PutObjectCommand,
@@ -12,9 +12,8 @@ import {
   TranscribeClient,
 } from "@aws-sdk/client-transcribe";
 import { currentUser } from "@clerk/nextjs";
-import { NextRequest, NextResponse } from "next/server";
 import axios from "axios";
-import { client } from "@/lib/prisma";
+import { NextRequest, NextResponse } from "next/server";
 
 // Constants
 const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
@@ -235,7 +234,7 @@ export async function POST(request: NextRequest) {
 
     const fileUrl = await uploadToS3(file, fileName, bucketName);
     const { jobName } = await handleTranscriptionJob(fileUrl, fileName);
-    const { transcriptionUrl, content } = await pollTranscriptionStatus(
+    const { content } = await pollTranscriptionStatus(
       jobName
     );
 
@@ -347,6 +346,7 @@ export async function POST(request: NextRequest) {
         metaTitle,
         metaTag,
         blog,
+        transcript,
       });
     }
   } catch (error) {

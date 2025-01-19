@@ -11,7 +11,6 @@ import {
   StartTranscriptionJobCommand,
   TranscribeClient,
 } from "@aws-sdk/client-transcribe";
-import { currentUser } from "@clerk/nextjs";
 import axios from "axios";
 import { NextRequest, NextResponse } from "next/server";
 

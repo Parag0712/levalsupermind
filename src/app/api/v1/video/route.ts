@@ -1,16 +1,20 @@
+import LangflowClient from "@/lib/LangflowClient";
 import {
-    GetObjectCommand,
-    PutObjectCommand,
-    S3Client
+  GetObjectCommand,
+  PutObjectCommand,
+  S3Client,
 } from "@aws-sdk/client-s3";
 import {
-    GetTranscriptionJobCommand,
-    LanguageCode,
-    MediaFormat,
-    StartTranscriptionJobCommand,
-    TranscribeClient,
+  GetTranscriptionJobCommand,
+  LanguageCode,
+  MediaFormat,
+  StartTranscriptionJobCommand,
+  TranscribeClient,
 } from "@aws-sdk/client-transcribe";
+import { currentUser } from "@clerk/nextjs";
 import { NextRequest, NextResponse } from "next/server";
+import axios from "axios";
+import { client } from "@/lib/prisma";
 
 // Constants
 const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
@@ -18,14 +22,14 @@ const POLL_INTERVAL = 5000; // 5 seconds
 const MAX_POLL_ATTEMPTS = 60; // 5 minutes maximum waiting time
 // const ALLOWED_VIDEO_TYPES = ["video/mp4", "video/quicktime", "video/x-msvideo"];
 const ALLOWED_FILE_TYPES = [
-    // Video formats
-    "video/mp4", 
-    "video/quicktime", 
-    "video/x-msvideo",
-    // Document formats
-    "application/msword", // .doc
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .docx
-    "application/pdf", // .pdf
+  // Video formats
+  "video/mp4",
+  "video/quicktime",
+  "video/x-msvideo",
+  // Document formats
+  "application/msword", // .doc
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .docx
+  "application/pdf", // .pdf
 ];
 
 // AWS Client configuration with error handling
@@ -59,18 +63,17 @@ const generateJobName = (prefix = "transcription"): string => {
   return `${prefix}_${timestamp}_${random}`;
 };
 
-
 // Updated file validation
 const validateFile = (file: File) => {
-    if (!file) throw new Error("No file provided");
-    if (file.size === 0) throw new Error("File is empty");
-    if (file.size > MAX_FILE_SIZE)
-        throw new Error("File size exceeds maximum limit");
-    if (!ALLOWED_FILE_TYPES.includes(file.type)) {
-        throw new Error(
-            "Invalid file type. Only MP4, MOV, AVI, DOC, DOCX, and PDF files are allowed"
-        );
-    }
+  if (!file) throw new Error("No file provided");
+  if (file.size === 0) throw new Error("File is empty");
+  if (file.size > MAX_FILE_SIZE)
+    throw new Error("File size exceeds maximum limit");
+  if (!ALLOWED_FILE_TYPES.includes(file.type)) {
+    throw new Error(
+      "Invalid file type. Only MP4, MOV, AVI, DOC, DOCX, and PDF files are allowed"
+    );
+  }
 };
 
 // Improved S3 upload with progress tracking
@@ -209,37 +212,157 @@ async function pollTranscriptionStatus(
 
 // Modified POST handler
 export async function POST(request: NextRequest) {
-    try {
-      const formData = await request.formData();
-      const file = formData.get('file') as File;
-  
-      validateFile(file);
-  
-      const fileName = `uploads/${Date.now()}-${file.name}`;
-      const bucketName = process.env.AWS_S3_BUCKET_NAME;
-      
-      if (!bucketName) {
-        return NextResponse.json({ error: 'S3 bucket not configured' }, { status: 500 });
-      }
-  
-      const fileUrl = await uploadToS3(file, fileName, bucketName);
-      const { jobName } = await handleTranscriptionJob(fileUrl, fileName);
-      const { transcriptionUrl, content } = await pollTranscriptionStatus(jobName);
-  
-      return NextResponse.json({
-        success: true,
-        message: 'Transcription completed successfully',
-        fileUrl,
-        transcriptionUrl,
-        jobName,
-        transcriptionContent: content
-      });
-  
-    } catch (error) {
-      console.error('Transcription error:', error);
-      return NextResponse.json({
-        success: false,
-        message: error instanceof Error ? error.message : 'Unknown error occurred',
-      }, { status: error instanceof Error && error.message.includes('validation') ? 400 : 500 });
+  try {
+    const user = await currentUser();
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 401 });
     }
+
+    const formData = await request.formData();
+    const file = formData.get("file") as File;
+
+    validateFile(file);
+
+    const fileName = `uploads/${Date.now()}-${file.name}`;
+    const bucketName = process.env.AWS_S3_BUCKET_NAME;
+
+    if (!bucketName) {
+      return NextResponse.json(
+        { error: "S3 bucket not configured" },
+        { status: 500 }
+      );
+    }
+
+    const fileUrl = await uploadToS3(file, fileName, bucketName);
+    const { jobName } = await handleTranscriptionJob(fileUrl, fileName);
+    const { transcriptionUrl, content } = await pollTranscriptionStatus(
+      jobName
+    );
+
+    const transcript = content.results.transcripts[0].transcript;
+
+    const LANGFLOW_URL = "https://api.langflow.astra.datastax.com";
+    const LANGFLOW_ID = "8ce9204b-b653-4d1d-a20d-259082d7568a";
+    const FLOW_ID = "a40b3ea0-fe83-4d99-9f89-31d416c121a3";
+    const API_TOKEN =
+      "AstraCS:MRHLGQkSIhHGoOHwptTbHroa:734101f1d5e66aa44cc45ca3f7a5e4375b8b835a4d557670d71b3ea741247737";
+    const response = await axios({
+      method: "post",
+      url: `${LANGFLOW_URL}/lf/${FLOW_ID}/api/v1/run/${LANGFLOW_ID}`,
+      params: {
+        stream: false,
+      },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${API_TOKEN}`,
+      },
+      data: {
+        input_value: transcript,
+        output_type: "chat",
+        input_type: "chat",
+        tweaks: {
+          "Prompt-IvFOp": {
+            template:
+              'Given the following references and instructions:\n\nReference 1:\n{references}\n\n\n"Generate only JSON structured output for {instruction} in the following format:\ntitle: title from output || description: description from output and it should be more in detailed || keyword: keyword from output || metaDescription: metaDescription from output || metaTitle: metaTitle from output || metaTag: metatag from output\nReplace each placeholder with appropriate values. Ensure the title is concise and engaging, the description provides a detailed overview, and the metadata fields (keyword, metaDescription, metaTitle, metaTag) are SEO-optimized and relevant to {instruction}."',
+            references: "",
+            instruction: "",
+          },
+          "TextOutput-xzGdL": {
+            input_value:
+              "Demystifying Natural Language Processing (NLP): How AI Understands Human Language",
+          },
+          "GoogleGenerativeAIModel-BniIy": {
+            google_api_key: process.env.GOOGLE_API_KEY,
+            input_value: "",
+            max_output_tokens: null,
+            model: "gemini-1.5-pro",
+            n: null,
+            stream: false,
+            system_message: "",
+            temperature: 0.1,
+            top_k: null,
+            top_p: null,
+          },
+          "ChatOutput-LQ1hT": {
+            background_color: "",
+            chat_icon: "",
+            data_template: "{text}",
+            input_value: "",
+            sender: "Machine",
+            sender_name: "AI",
+            session_id: "",
+            should_store_message: true,
+            text_color: "",
+          },
+        },
+      },
+    });
+
+    console.log(response.data);
+
+    // Example usage:
+
+    if (response && response.data.outputs) {
+      const flowOutputs = response.data.outputs[0];
+      const firstComponentOutputs = flowOutputs.outputs[0];
+      const output = firstComponentOutputs.outputs.message;
+
+      // Extract the JSON string (removing the starting "```json" and ending "```")
+      const jsonString = output.text.replace(/^```json\n|\n```$/g, "");
+
+      // Parse the JSON string
+      const parsedData = JSON.parse(jsonString);
+
+      // Destructure the necessary fields
+      const {
+        title,
+        description,
+        keyword,
+        metaDescription,
+        metaTitle,
+        metaTag,
+      } = parsedData;
+
+      const blog = await client.blog.create({
+        data: {
+          title,
+          content: description,
+          keywords: keyword || "",
+          metaDescription: metaDescription || "",
+          slug: title,
+          author: {
+            connect: {
+              id: user.id,
+            },
+          },
+        },
+      });
+
+      // Return the structured data if needed
+      return NextResponse.json({
+        title,
+        description,
+        keyword,
+        metaDescription,
+        metaTitle,
+        metaTag,
+        blog,
+      });
+    }
+  } catch (error) {
+    console.error("Transcription error:", error);
+    return NextResponse.json(
+      {
+        success: false,
+        message:
+          error instanceof Error ? error.message : "Unknown error occurred",
+      },
+      {
+        status:
+          error instanceof Error && error.message.includes("validation")
+            ? 400
+            : 500,
+      }
+    );
   }
+}

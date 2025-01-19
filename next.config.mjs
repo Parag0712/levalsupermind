@@ -1,5 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  async rewrites() {
+    return [
+      {
+        source: "/api/langflow/:langflowId/api/v1/run/:flowId/:path*",
+        destination: "https://api.langflow.astra.datastax.com/lf/:langflowId/api/v1/run/:flowId/:path*",
+      },
+    ];
+  },
   webpack(config) {
     // Grab the existing rule that handles SVG imports
     const fileLoaderRule = config.module.rules.find((rule) =>

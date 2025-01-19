@@ -1,8 +1,8 @@
 import { authMiddleware } from "@clerk/nextjs";
 
 export default authMiddleware({
-  publicRoutes: ["/", "/auth(.*)", "/portal(.*)", "/images(.*)"], // Public routes accessible without authentication
-  ignoredRoutes: ["/chatbot"], // Routes to be ignored from authentication middleware
+  publicRoutes: ["/", "/auth(.*)", "/portal(.*)", "/images(.*)", "/api/v1/video"], // Add the route here
+  ignoredRoutes: ["/chatbot"], // Routes to ignore middleware completely
 });
 
 export const config = {

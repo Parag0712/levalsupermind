@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Globe, ChevronDown, ChevronUp, Loader2, Calendar, Tag, Clock } from 'lucide-react';
 import axios from 'axios';
+import Link from 'next/link';
 
 // Language mapping for Indian languages
 const languageToAWSCode = {
@@ -138,6 +139,12 @@ const BlogDisplay = () => {
               <CardContent className="space-y-6 transition-all duration-300 ease-in-out">
                 <div className="prose dark:prose-invert max-w-none">
                   <p className="text-lg leading-relaxed">{blog.content}</p>
+                  <Link href={`${process.env.NEXT_PUBLIC_BASE_URL}/blogs/${blog.slug}`}>
+                  <CardTitle className="text-lg flex items-center gap-2 text-primary">
+                    <Globe className="h-5 w-5" />
+                    Read More
+                  </CardTitle>
+                  </Link>
                   {blog.keywords && blog.keywords.length > 0 && (
                     <div className="flex flex-wrap gap-2 mt-4">
                       {blog.keywords.map((keyword: string, index: number) => (

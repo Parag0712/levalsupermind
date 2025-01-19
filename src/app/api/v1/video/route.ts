@@ -245,9 +245,9 @@ export async function POST(request: NextRequest) {
     const transcript = content.results.transcripts[0].transcript;
 
     const LANGFLOW_URL = "https://api.langflow.astra.datastax.com";
-    const LANGFLOW_ID = "8ce9204b-b653-4d1d-a20d-259082d7568a";
-    const FLOW_ID = "a40b3ea0-fe83-4d99-9f89-31d416c121a3";
-    const API_TOKEN ="AstraCS:mDOAZNfKNTkEZoXElGEnGvQl:fdb422a94e3c234662cd6e20c481a99c485e9537452292be24300c9ca98d1335";
+    const LANGFLOW_ID = process.env.NEXT_PUBLIC_LANGFLOW_ID;
+    const FLOW_ID = process.env.NEXT_PUBLIC_FLOW_ID_OR_NAME;
+    const API_TOKEN = process.env.NEXT_PUBLIC_APPLICATION_TOKEN;
     const response = await axios({
       method: "post",
       url: `${LANGFLOW_URL}/lf/${FLOW_ID}/api/v1/run/${LANGFLOW_ID}`,

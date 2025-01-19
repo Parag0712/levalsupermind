@@ -15,7 +15,8 @@ export default function MinimalTranscriptionApp() {
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const router = useRouter();
+  const router = useRouter(); 
+  const [blogId, setBlogId] = useState<string | null>(null);
 
   const handleFileChange = async (
     event: React.ChangeEvent<HTMLInputElement>
@@ -46,7 +47,7 @@ export default function MinimalTranscriptionApp() {
 
       if (response.data && response.data.transcript) {
         setTranscript(response.data.transcript);
-        response;
+        setBlogId(response.data.blogId);
       } else {
         setTranscript(
           "Failed to generate transcript: Unexpected response format."
@@ -180,7 +181,7 @@ export default function MinimalTranscriptionApp() {
                   </p>
                 </div>
                 <div className="flex justify-center">
-                  <Button onClick={redirectToTranscript} variant="default">
+                  <Button onClick={() => redirectToTranscript(blogId as string)} variant="default">
                     Go to Transcript
                   </Button>
                 </div>

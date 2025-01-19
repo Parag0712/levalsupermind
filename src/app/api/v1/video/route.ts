@@ -212,10 +212,10 @@ async function pollTranscriptionStatus(
 // Modified POST handler
 export async function POST(request: NextRequest) {
   try {
-    const user = await currentUser();
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 401 });
-    }
+    // const user = await currentUser();
+    // if (!user) {
+    //   return NextResponse.json({ error: "User not found" }, { status: 401 });
+    // }
 
     const formData = await request.formData();
     const file = formData.get("file") as File;
@@ -241,8 +241,7 @@ export async function POST(request: NextRequest) {
     const LANGFLOW_URL = "https://api.langflow.astra.datastax.com";
     const LANGFLOW_ID = "8ce9204b-b653-4d1d-a20d-259082d7568a";
     const FLOW_ID = "a40b3ea0-fe83-4d99-9f89-31d416c121a3";
-    const API_TOKEN =
-      "AstraCS:MRHLGQkSIhHGoOHwptTbHroa:734101f1d5e66aa44cc45ca3f7a5e4375b8b835a4d557670d71b3ea741247737";
+    const API_TOKEN ="AstraCS:mDOAZNfKNTkEZoXElGEnGvQl:fdb422a94e3c234662cd6e20c481a99c485e9537452292be24300c9ca98d1335";
     const response = await axios({
       method: "post",
       url: `${LANGFLOW_URL}/lf/${FLOW_ID}/api/v1/run/${LANGFLOW_ID}`,
@@ -310,6 +309,8 @@ export async function POST(request: NextRequest) {
       // Parse the JSON string
       const parsedData = JSON.parse(jsonString);
 
+
+      console.log(parsedData);
       // First destructure the data
       const {
         title,
@@ -320,28 +321,27 @@ export async function POST(request: NextRequest) {
         metaTag,
       } = parsedData;
 
-      // const blog = await client.blog.create({
-      //   data: {
-      //     title,
-      //     content: description,
-      //     metaDescription,
-      //     slug: title,
-      //     author: {
-      //       connect: {
-      //         id: user.id,
-      //       },
-      //     },
-      //     keywords:["blogs"],
-      //     status: "PUBLISHED",
-      //   },
-      // });
-
-      // Then convert keywords to array
-      // const keywordsArray = keyword.split(",").map((k: string) => k.trim());
+      const keywordsArray = keyword.split(",").map((k: string) => k.trim());
+      const blog = await client.blog.create({
+        data: {
+          title,
+          content: description,
+          metaDescription,
+          slug: title,
+          keywords:keywordsArray,
+          status: "PUBLISHED",
+          author: {
+            connect: {
+              id: "e66c931d-15a5-4af1-857e-f409c17e8e20",
+            },
+          },
+        },
+      });
 
       // Return the structured data if needed
       return NextResponse.json({
         // blog: blog,
+        blogId:blog.slug,
         title,
         description,
         // keywordsArray,

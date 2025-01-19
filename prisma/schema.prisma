@@ -60,7 +60,7 @@ model Translation {
   title           String
   slug            String
   metaDescription String?    @db.Text
-  metaKeywords    String[]
+  keywords    String[]
   status          BlogStatus @default(DRAFT)
   blog            Blog       @relation(fields: [blogId], references: [id], onDelete: Cascade)
   blogId          String     @db.Uuid
@@ -100,17 +100,15 @@ enum BlogStatus {
   PUBLISHED
   ARCHIVED
 }
-
 enum Language {
-  ENGLISH
-  HINDI
-  MARATHI
-  GUJARATI
-  TAMIL
-  KANNADA
-  TELUGU
-  BENGALI
-  MALAYALAM
-  PUNJABI
-  ODIA
+  EN
+  ES
+  FR
+  DE
+  IT
+  JA
+  KO
+  PT
+  RU
+  ZH
 }
